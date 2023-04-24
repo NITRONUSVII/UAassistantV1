@@ -1,0 +1,99 @@
+import json, pyaudio
+import pyttsx3
+import webbrowser
+import datetime
+import wikipedia
+from playsound import playsound
+import speech_recognition as sr
+from gtts import gTTS
+from vosk import Model, KaldiRecognizer
+
+
+def speak(audio):   
+    rate=engine.getProperty('rate') 
+    engine.setProperty('rate',rate-17)
+    engine.say(audio)
+    engine.runAndWait()
+engine=pyttsx3.init('sapi5')
+voices=engine.getProperty('voices')
+engine.setProperty('voice',voices[1].id)
+
+
+
+
+
+
+
+def listen():
+    while True:
+        data=stream.read(4000,exception_on_overflow=False)
+        if (rec.AcceptWaveform(data)) and (len(data)>0):
+            answer=json.loads(rec.Result())
+            if answer['text']:
+                yield answer['text']
+
+model=Model('C:/JIA7py/VoiceAssistant3.0/vosk-model-uk-v3')
+rec=KaldiRecognizer(model,16000)
+p=pyaudio.PyAudio()
+stream=p.open(format=pyaudio.paInt16,channels=1,rate=16000,input=True,frames_per_buffer=8000)
+stream.start_stream()
+
+playsound('C:/JIA7py/VoiceAssistant3.0/83d43591312fa0c.mp3')
+print('READY TO WORK!')
+
+
+hourd=int(datetime.datetime.now().hour)
+
+def assistant(text):
+    if 'привіт' in text:
+        if hourd>=7 and hourd<13:
+            return 'добрий ранок'
+        elif hourd>=13 and hourd<18:
+            return 'добрий день'
+        elif hourd>=18 and hourd<22:
+            return 'добрий вечір'
+        else:
+            return 'доброї ночі'
+    elif 'пока' or 'пака' in text: return 'завершення роботи'
+    elif 'відкрий ютуб' in text:
+        return 'відкриваю'
+    elif 'вікіпедія' in text:
+        return 'відповідно до вікіпедії'
+        
+        
+
+
+
+def speak(responce):
+    tts = gTTS(text=responce, lang='uk')
+    tts.save('response.mp3')
+    playsound('response.mp3')
+
+
+
+
+
+
+
+
+
+for text in listen():
+    print(text)
+    response=assistant(text)
+    if text=='привіт':
+        speak(response)
+    elif text=='пока':
+        playsound('C:/JIA7py/VoiceAssistant3.0/ASOFF.mp3')
+        print('goodbye')
+        break
+    elif 'відкрий ютуб' in text:
+        speak(response)
+        webbrowser.open('youtube.com')
+    elif 'вікіпедія' in text:
+        wikipedia.set_lang('uk')
+        results=wikipedia.summary(text.replace('вікіпедія','').strip(),sentences=5)
+        speak(response)
+        print(results)
+        wtts=gTTS(text=str(results),lang='uk')
+        wtts.save('wiki.mp3')
+        playsound('C:/JIA7py/VoiceAssistant3.0/wiki.mp3')
